@@ -1,0 +1,124 @@
+#include <iostream>
+#include <fstream>
+#include <chrono>
+#define N 9
+
+using namespace std;
+using namespace chrono;
+
+void print(int sudoku[N][N])
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+        {	
+            cout << sudoku[i][j] << " ";
+            if (j == 2 || j == 5)
+                cout << "| ";
+        }
+		cout << endl;
+        if (i == 2 || i == 5)
+            cout << "---------------------\n";
+	}
+}
+
+bool pengecekan(int sudoku[N][N], int baris, int kolom, int angka)
+{
+	for (int i = 0; i < N; i++)
+    {
+        if(sudoku[baris][i] == angka || sudoku[i][kolom] == angka)
+            return false;
+    }
+
+	int gridBaris = (baris/3) * 3, gridKolom = (kolom/3) * 3;
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			if (sudoku[i + gridBaris][j + gridKolom] == angka)
+				return false;
+
+	return true;
+}
+
+bool penyelesaian(int sudoku[N][N], int baris, int kolom, int &iterasi)
+{
+	if (baris == N - 1 && kolom == N)
+		return true;
+
+	if (kolom == N) {
+		baris++;
+		kolom = 0;
+	}
+
+	if (sudoku[baris][kolom] > 0)
+		return penyelesaian(sudoku, baris, kolom + 1, iterasi);
+
+	for (int angka = 1; angka <= N; angka++)
+	{
+		if (pengecekan(sudoku, baris, kolom, angka))
+		{
+			iterasi++;
+			sudoku[baris][kolom] = angka;
+		
+			if (penyelesaian(sudoku, baris, kolom + 1, iterasi))
+				return true;
+		}
+	
+		sudoku[baris][kolom] = 0;
+	}
+	return false;
+}
+
+void input (int sudoku[N][N], int soal)
+{
+	string namaSoal;
+	if (soal == 1)
+		namaSoal = "tes.txt";
+	else if (soal == 2)
+		namaSoal = "tes2.txt";
+	else if (soal == 3)
+		namaSoal = "tes3.txt";
+	else if (soal == 4)
+		namaSoal = "tes4.txt";
+
+	ifstream inputFile(namaSoal);
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+            inputFile >> sudoku[i][j];
+    }
+
+	inputFile.close();
+}
+
+int main()
+{
+	int sudoku[N][N];
+	int soal = 1;
+	while (soal <= 4)
+	{
+		input(sudoku, soal);
+
+		cout << "\nSOAL SUDOKU YANG BELUM TERSELESAIKAN\n";
+		print(sudoku);
+
+		int iterasi = 0;
+		auto start = high_resolution_clock::now();
+		if (penyelesaian(sudoku, 0, 0, iterasi))
+		{
+			auto stop = high_resolution_clock::now();
+			auto duration = duration_cast<milliseconds>(stop - start);
+			cout << "\nPENYELESAIAN SUDOKU\n";
+			print(sudoku);
+			cout << "\nJumlah Iterasi: " << iterasi << endl;
+			cout << "Waktu Eksekusi: " << duration.count() << " milisekon\n";
+			
+		}
+		else
+			cout << "Tidak Ada Solusi yang Memungkinkan" << endl;
+	soal++;
+	}
+
+	return 0;
+}
